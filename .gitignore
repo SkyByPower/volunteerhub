@@ -11,3 +11,4 @@ app/static/uploads/*
 .idea/
 .vscode/
 .claude/
+_site/

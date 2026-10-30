@@ -36,8 +36,10 @@
       </nav>
       <div class="nav-actions">
         <div class="lang-switch">
-          <a href="{{ url_for('set_language', code='kk') }}" class="{{ 'on' if lang == 'kk' }}">ҚАЗ</a>
-          <a href="{{ url_for('set_language', code='ru') }}" class="{{ 'on' if lang == 'ru' }}">РУС</a>
+          {% for code, label in [('kk', 'ҚАЗ'), ('ru', 'РУС')] %}
+            {# the static demo has one folder per language: <base>/kk/... and <base>/ru/... #}
+            <a href="{{ config.DEMO_BASE ~ '/' ~ code ~ request.path if config.STATIC_DEMO else url_for('set_language', code=code) }}" class="{{ 'on' if lang == code }}">{{ label }}</a>
+          {% endfor %}
         </div>
         <button class="icon-btn" id="themeToggle" type="button" title="{{ t('theme.toggle') }}" aria-label="{{ t('theme.toggle') }}"></button>
         {% if current_user.is_authenticated %}
@@ -60,8 +62,8 @@
             </div>
           </div>
         {% else %}
-          <a class="btn btn-ghost btn-sm hide-sm" href="{{ url_for('auth.login') }}">{{ t('nav.login') }}</a>
-          <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">{{ t('nav.register') }}</a>
+          <a class="btn btn-ghost btn-sm hide-sm" href="{{ live_url('auth.login') }}">{{ t('nav.login') }}</a>
+          <a class="btn btn-primary btn-sm" href="{{ live_url('auth.register') }}">{{ t('nav.register') }}</a>
         {% endif %}
         <button class="icon-btn burger" id="burger" type="button" aria-label="Menu"><i class="bi bi-list"></i></button>
       </div>
@@ -79,6 +81,13 @@
     {% endfor %}
   </div>
 
+  {% if config.STATIC_DEMO %}
+  <div class="demo-banner">
+    <div class="container"><i class="bi bi-info-circle"></i> {{ t('demo.banner') }}
+      <a href="{{ config.LIVE_URL }}">{{ t('demo.open_live') }} <i class="bi bi-box-arrow-up-right"></i></a></div>
+  </div>
+  {% endif %}
+
   <main>
     <div class="container page-enter">
       {% block content %}{% endblock %}
@@ -88,7 +97,7 @@
   <footer>
     <div class="container">
       <span>© 2026 {{ t('brand') }} — {{ t('footer.made') }} <i class="bi bi-heart-fill" style="color:var(--primary-2)"></i></span>
-      <span>Flask · SQLAlchemy · Jinja2 · <a href="{{ url_for('api.list_projects') }}">{{ t('nav.api') }}</a></span>
+      <span>Flask · SQLAlchemy · Jinja2 · <a href="{{ live_url('api.list_projects') }}">{{ t('nav.api') }}</a></span>
     </div>
   </footer>
 

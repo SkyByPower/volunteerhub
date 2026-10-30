@@ -455,6 +455,11 @@ tbody tr:last-child td { border-bottom: 0; }
 .error-page .ic { font-size: 3rem; color: var(--primary); display: inline-block; animation: wobble 3s ease-in-out infinite; }
 @keyframes wobble { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
 
+/* ---------- static demo banner ---------- */
+.demo-banner { position: relative; z-index: 2; background: var(--grad-soft); border-bottom: 1px solid var(--border); padding: 10px 0; font-size: .88rem; font-weight: 600; }
+.demo-banner .container { display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; }
+.demo-banner a { font-weight: 800; }
+
 /* ---------- footer ---------- */
 footer { border-top: 1px solid var(--border); padding: 28px 0; color: var(--muted); font-size: .9rem; position: relative; z-index: 1; }
 footer .container { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }

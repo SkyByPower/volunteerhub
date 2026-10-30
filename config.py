@@ -23,6 +23,11 @@ class Config:
     LANGUAGES = ["kk", "ru"]
     DEFAULT_LANGUAGE = "kk"
 
+    # read-only snapshot for GitHub Pages (see freeze.py); interactive links go to LIVE_URL
+    STATIC_DEMO = False
+    DEMO_BASE = os.getenv("DEMO_BASE", "/volunteerhub")  # GitHub Pages project path
+    LIVE_URL = os.getenv("LIVE_URL", "https://volunteerhub-skybypower.onrender.com")
+
 
 class TestConfig(Config):
     TESTING = True

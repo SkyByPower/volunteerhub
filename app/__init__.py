@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, request, url_for
 
 from config import BASE_DIR, Config
 from .extensions import csrf, db, login_manager, migrate
@@ -21,6 +21,17 @@ def create_app(config_class=Config):
     login_manager.login_message = LazyText("flash.need_login")
 
     init_i18n(app)
+
+    @app.context_processor
+    def inject_live_url():
+        def live_url(endpoint, **values):
+            """url_for that points to the live server when rendering the static demo."""
+            url = url_for(endpoint, **values)
+            if app.config["STATIC_DEMO"]:
+                return app.config["LIVE_URL"] + url[len(request.script_root):]
+            return url
+
+        return {"live_url": live_url}
 
     from .routes import register_blueprints
     register_blueprints(app)

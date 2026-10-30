@@ -6,6 +6,18 @@
 
 ![Home](docs/screenshots/01-home.jpg)
 
+## 🌐 Демо / Демо
+
+| | Сілтеме | Не жұмыс істейді |
+|---|---|---|
+| **Толық сайт** (Render) | <https://volunteerhub-skybypower.onrender.com> | Барлығы: кіру, рөлдер, CRUD, файл жүктеу, API. Тегін тарифте алғашқы ашылу ~1 мин; деректер қайта іске қосылғанда демоға қайтады |
+| **Статикалық демо** (GitHub Pages) | <https://skybypower.github.io/volunteerhub/> | Тек көру: басты бет, жобалар, анимациялар, ҚАЗ/РУС, тақырып. Кіру және формалар толық сайтқа апарады |
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SkyByPower/volunteerhub)
+
+- Render: `render.yaml` (Blueprint) — `gunicorn` арқылы іске қосылады, әр стартта `flask seed` орындалады.
+- GitHub Pages: `.github/workflows/pages.yml` әр `push` кезінде тесттерді өткізіп, `freeze.py` арқылы статикалық көшірме жасап, жариялайды.
+
 ---
 
 ## ✨ Мүмкіндіктер / Возможности

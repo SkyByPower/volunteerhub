@@ -9,6 +9,8 @@
   {% endif %}
 </div>
 
+{# query-string search/filter needs a server, so the static demo lists every project instead #}
+{% if not config.STATIC_DEMO %}
 <form class="card toolbar reveal" method="get" data-autosubmit>
   <div class="search-box"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="{{ t('search_placeholder') }}" maxlength="100"></div>
   <input type="hidden" name="category" value="{{ category }}">
@@ -32,6 +34,7 @@
     <a class="chip {{ 'on' if c == category }}" href="{{ url_for('projects.list_projects', **base) }}"><i class="bi {{ m.CAT_ICONS[c] }}"></i> {{ t('cat.' ~ c) }}</a>
   {% endfor %}
 </div>
+{% endif %}
 
 {% if pagination.items %}
   <div class="grid-3" data-stagger>
