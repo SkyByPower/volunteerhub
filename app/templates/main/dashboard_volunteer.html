@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ t('nav.dashboard') }}{% endblock %}
+{% block content %}
+<div class="page-head reveal">
+  <div>
+    <h1>{{ t('dash.welcome') }}, <span class="gradient-text">{{ current_user.full_name.split()[0] }}</span> 👋</h1>
+    <p>{{ t('dash.vol_sub') }}</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('projects.list_projects') }}"><i class="bi bi-search-heart"></i>{{ t('hero.cta_projects') }}</a>
+</div>
+
+<section class="stats-grid" data-stagger>
+  {% for key, label, icon, g in [('hours', 'dash.my_hours', 'bi-hourglass-split', 'g1'), ('projects', 'dash.my_projects', 'bi-kanban', 'g2'), ('certificates', 'dash.certificates', 'bi-award', 'g3'), ('pending', 'dash.pending', 'bi-clock', 'g4')] %}
+  <div class="card stat hover">
+    <div class="ic {{ g }}"><i class="bi {{ icon }}"></i></div>
+    <div class="num" data-count="{{ stats[key] }}">0</div>
+    <div class="lbl">{{ t(label) }}</div>
+  </div>
+  {% endfor %}
+</section>
+
+<div class="card reveal" style="margin-top:24px">
+  <div class="card-title"><h3><i class="bi bi-list-check"></i> {{ t('nav.my_assignments') }}</h3>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.list_assignments') }}">{{ t('see_all') }}</a></div>
+  {% for a in mine %}
+    <a class="list-item" href="{{ url_for('assignments.detail', assignment_id=a.id) }}">
+      <span class="avatar md ph-{{ a.project.category }}"><i class="bi {{ m.CAT_ICONS.get(a.project.category) }}"></i></span>
+      <div class="grow"><b>{{ a.project.title }}</b><small>{{ a.role_title }} · {{ a.hours }} {{ t('volunteers.hours')|lower }}</small></div>
+      {% if a.certificate_file %}<i class="bi bi-award-fill" style="color:var(--accent)"></i>{% endif %}
+      {{ m.status(a.status) }}
+    </a>
+  {% else %}
+    <p class="muted">{{ t('nothing_found') }}</p>
+  {% endfor %}
+</div>
+
+{% if recommended %}
+<section class="section" style="margin-top:40px">
+  <div class="page-head reveal"><h2 style="margin:0">{{ t('dash.recommended') }}</h2></div>
+  <div class="grid-3" data-stagger>
+    {% for p in recommended %}{{ m.project_card(p) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head reveal"><div><h1>{{ title }}</h1>{% if volunteer %}<p>{{ volunteer.email }}</p>{% endif %}</div></div>
+<div class="card reveal" style="max-width:860px">
+  <form method="post" enctype="multipart/form-data" novalidate class="form-grid">
+    {{ form.hidden_tag() }}
+    {{ m.field(form.full_name, full=true) }}
+    {{ m.field(form.email) }}
+    {{ m.field(form.phone, placeholder='+7 700 123 45 67') }}
+    {{ m.field(form.city) }}
+    {{ m.field(form.role) }}
+    {{ m.field(form.skills, full=true, hint=t('f.skills_hint')) }}
+    {{ m.field(form.bio, full=true) }}
+    {{ m.field(form.password, hint=t('f.password_keep') if volunteer else none, autocomplete='new-password') }}
+    {{ m.field(form.avatar, accept='image/*') }}
+    <div class="full form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('volunteers.detail', volunteer_id=volunteer.id) if volunteer else url_for('volunteers.list_volunteers') }}">{{ t('cancel') }}</a>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>{{ t('save') }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

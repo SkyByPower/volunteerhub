@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head reveal"><div><h1>{{ title }}</h1>{% if a %}<p>{{ a.volunteer.full_name }} → {{ a.project.title }}</p>{% endif %}</div></div>
+<div class="card reveal" style="max-width:860px">
+  <form method="post" enctype="multipart/form-data" novalidate class="form-grid">
+    {{ form.hidden_tag() }}
+    {{ m.field(form.project_id, full=true) }}
+    {{ m.field(form.volunteer_id, full=true) }}
+    {{ m.field(form.role_title, maxlength=80) }}
+    {{ m.field(form.hours, min=0, max=1000) }}
+    {{ m.field(form.status, full=true) }}
+    {{ m.field(form.note, full=true, rows=3) }}
+    {{ m.field(form.certificate, full=true, accept='application/pdf') }}
+    <div class="full form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('assignments.detail', assignment_id=a.id) if a else url_for('assignments.list_assignments') }}">{{ t('cancel') }}</a>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>{{ t('save') }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ t('nav.projects') }}{% endblock %}
+{% block content %}
+<div class="page-head reveal">
+  <div><h1>{{ t('projects.title') }}</h1><p>{{ t('projects.subtitle') }}</p></div>
+  {% if current_user.is_authenticated and current_user.is_admin %}
+    <a class="btn btn-primary" href="{{ url_for('projects.create') }}"><i class="bi bi-plus-lg"></i>{{ t('projects.new') }}</a>
+  {% endif %}
+</div>
+
+<form class="card toolbar reveal" method="get" data-autosubmit>
+  <div class="search-box"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="{{ t('search_placeholder') }}" maxlength="100"></div>
+  <input type="hidden" name="category" value="{{ category }}">
+  <select name="status" aria-label="{{ t('f.status') }}">
+    <option value="">{{ t('f.status') }}: {{ t('all') }}</option>
+    {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == status }}>{{ t('st.' ~ s) }}</option>{% endfor %}
+  </select>
+  <select name="sort" aria-label="{{ t('sort') }}">
+    {% for s in sorts %}<option value="{{ s }}" {{ 'selected' if s == sort }}>{{ t('sort.' ~ s) }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i>{{ t('apply') }}</button>
+  {% if q or category or status %}<a class="btn btn-ghost" href="{{ url_for('projects.list_projects') }}">{{ t('reset') }}</a>{% endif %}
+</form>
+
+<div class="chips reveal">
+  {% set base = request.args.to_dict() %}{% set _ = base.pop('page', None) %}
+  {% set _ = base.update(category='') %}
+  <a class="chip {{ 'on' if not category }}" href="{{ url_for('projects.list_projects', **base) }}">{{ t('all') }}</a>
+  {% for c in categories %}
+    {% set _ = base.update(category=c) %}
+    <a class="chip {{ 'on' if c == category }}" href="{{ url_for('projects.list_projects', **base) }}"><i class="bi {{ m.CAT_ICONS[c] }}"></i> {{ t('cat.' ~ c) }}</a>
+  {% endfor %}
+</div>
+
+{% if pagination.items %}
+  <div class="grid-3" data-stagger>
+    {% for p in pagination.items %}{{ m.project_card(p) }}{% endfor %}
+  </div>
+  {{ m.pagination(pagination, 'projects.list_projects') }}
+{% else %}
+  {{ m.empty('bi-binoculars') }}
+{% endif %}
+{% endblock %}

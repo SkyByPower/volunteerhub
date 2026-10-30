@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% set admin = current_user.is_admin %}
+{% block title %}{{ t('assignments.detail') }} #{{ a.id }}{% endblock %}
+{% block content %}
+<a class="btn btn-ghost btn-sm reveal" href="{{ url_for('assignments.list_assignments') }}" style="margin-bottom:18px"><i class="bi bi-arrow-left"></i>{{ t('back') }}</a>
+
+<div class="page-head reveal">
+  <div>
+    <h1>{{ a.project.title }}</h1>
+    <p>{{ a.volunteer.full_name }} · {{ a.role_title }} · {{ m.status(a.status) }}</p>
+  </div>
+  <div class="row-actions">
+    {% if admin %}
+      <a class="btn btn-ghost" href="{{ url_for('assignments.edit', assignment_id=a.id) }}"><i class="bi bi-pencil"></i>{{ t('edit') }}</a>
+      {{ m.delete_form(url_for('assignments.delete', assignment_id=a.id), t('delete'), 'btn btn-danger') }}
+    {% elif a.status == 'pending' %}
+      {{ m.delete_form(url_for('assignments.delete', assignment_id=a.id), t('assignments.withdraw'), 'btn btn-danger') }}
+    {% endif %}
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="stack">
+    {% if admin %}
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-sliders"></i> {{ t('assignments.quick_status') }}</h3></div>
+      <div class="stepper">
+        {% for s in statuses %}
+        <form method="post" action="{{ url_for('assignments.change_status', assignment_id=a.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="status" value="{{ s }}">
+          <button type="submit" class="{{ 'on' if s == a.status }}">{{ t('st.' ~ s) }}</button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-folder2-open"></i> {{ t('assignments.documents') }}</h3></div>
+      <div class="stack" style="gap:12px">
+        {% for kind, file, label, icon in [('agreement', a.agreement_file, 'f.agreement', 'bi-file-earmark-text'), ('certificate', a.certificate_file, 'f.certificate', 'bi-award')] %}
+        <div class="doc-row">
+          <div class="ic"><i class="bi {{ icon }}"></i></div>
+          <div class="grow"><b>{{ t(label) }}</b><div class="small muted">{{ file.split('/')[-1].split('_', 1)[-1] if file else t('assignments.no_file') }}</div></div>
+          {% if file %}<a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.download', assignment_id=a.id, kind=kind) }}"><i class="bi bi-download"></i>{{ t('download') }}</a>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if a.volunteer_id == current_user.id or admin %}
+      <form method="post" enctype="multipart/form-data" action="{{ url_for('assignments.upload', assignment_id=a.id) }}" style="margin-top:18px">
+        {{ doc_form.hidden_tag() }}
+        <label class="small" style="font-weight:700;display:block;margin-bottom:8px">{{ t('assignments.upload_agreement') }}</label>
+        <div class="dropzone"><i class="bi bi-file-earmark-pdf"></i><span>PDF · max 5 MB</span><div class="fname"></div>{{ doc_form.document(accept='application/pdf') }}</div>
+        <div class="form-actions" style="margin-top:12px"><button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-upload"></i>{{ t('upload') }}</button></div>
+      </form>
+      {% endif %}
+      {% if admin %}
+      <form method="post" enctype="multipart/form-data" action="{{ url_for('assignments.upload', assignment_id=a.id, kind='certificate') }}" style="margin-top:8px">
+        {{ doc_form.hidden_tag() }}
+        <label class="small" style="font-weight:700;display:block;margin-bottom:8px">{{ t('assignments.upload_certificate') }}</label>
+        <div class="dropzone"><i class="bi bi-award"></i><span>PDF · max 5 MB</span><div class="fname"></div>{{ doc_form.document(accept='application/pdf', id='certificate_doc') }}</div>
+        <div class="form-actions" style="margin-top:12px"><button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-upload"></i>{{ t('upload') }}</button></div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card reveal">
+      <ul class="info-list">
+        <li><span class="ic"><i class="bi bi-person"></i></span><div><small>{{ t('f.volunteer') }}</small><b>{{ a.volunteer.full_name }}</b></div></li>
+        <li><span class="ic"><i class="bi bi-kanban"></i></span><div><small>{{ t('f.project') }}</small><a href="{{ url_for('projects.detail', project_id=a.project_id) }}"><b>{{ a.project.title }}</b></a></div></li>
+        <li><span class="ic"><i class="bi bi-briefcase"></i></span><div><small>{{ t('f.role_title') }}</small><b>{{ a.role_title }}</b></div></li>
+        <li><span class="ic"><i class="bi bi-hourglass-split"></i></span><div><small>{{ t('volunteers.hours') }}</small><b>{{ a.hours }}</b></div></li>
+        {% if a.note %}<li><span class="ic"><i class="bi bi-chat-quote"></i></span><div><small>{{ t('f.note') }}</small><span>{{ a.note }}</span></div></li>{% endif %}
+      </ul>
+    </div>
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-clock-history"></i> {{ t('assignments.history') }}</h3></div>
+      {% if a.history %}
+      <ul class="timeline">
+        {% for h in a.history %}
+        <li>
+          <div>{% if h.old_status %}{{ m.status(h.old_status) }} <i class="bi bi-arrow-right small muted"></i> {% endif %}{{ m.status(h.new_status) }}</div>
+          <div class="small muted" style="margin-top:4px">{{ h.changed_at.strftime('%d.%m.%Y %H:%M') }}{% if h.changed_by %} · {{ h.changed_by.full_name }}{% endif %}</div>
+        </li>
+        {% endfor %}
+        <li><div>{{ m.status('pending') }}</div><div class="small muted" style="margin-top:4px">{{ a.created_at.strftime('%d.%m.%Y %H:%M') }} · {{ t('created') }}</div></li>
+      </ul>
+      {% else %}
+        <ul class="timeline"><li><div>{{ m.status('pending') }}</div><div class="small muted" style="margin-top:4px">{{ a.created_at.strftime('%d.%m.%Y %H:%M') }} · {{ t('created') }}</div></li></ul>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

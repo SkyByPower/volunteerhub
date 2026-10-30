@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ t('nav.register') }}{% endblock %}
+{% block content %}
+<div class="auth-wrap reveal">
+  {% include "auth/_side.html" %}
+  <div class="auth-form">
+    <h1>{{ t('register.title') }}</h1>
+    <p class="muted">{{ t('register.subtitle') }}</p>
+    <form method="post" enctype="multipart/form-data" novalidate class="form-grid" style="margin-top:20px">
+      {{ form.hidden_tag() }}
+      {{ m.field(form.full_name, full=true, placeholder='Айгерім Сәрсенова') }}
+      {{ m.field(form.email, placeholder='name@mail.kz') }}
+      {{ m.field(form.phone, placeholder='+7 700 123 45 67') }}
+      {{ m.field(form.city, placeholder='Алматы') }}
+      {{ m.field(form.skills, hint=t('f.skills_hint')) }}
+      {{ m.field(form.password, autocomplete='new-password') }}
+      {{ m.field(form.password2, autocomplete='new-password') }}
+      {{ m.field(form.avatar, full=true, accept='image/*') }}
+      <div class="full"><button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-person-plus"></i>{{ t('nav.register') }}</button></div>
+    </form>
+    <p class="muted small" style="margin-top:18px">{{ t('have_account') }} <a href="{{ url_for('auth.login') }}">{{ t('nav.login') }}</a></p>
+  </div>
+</div>
+{% endblock %}

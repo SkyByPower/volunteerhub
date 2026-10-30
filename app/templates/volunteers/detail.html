@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ volunteer.full_name }}{% endblock %}
+{% block content %}
+<a class="btn btn-ghost btn-sm reveal" href="{{ url_for('volunteers.list_volunteers') }}" style="margin-bottom:18px"><i class="bi bi-arrow-left"></i>{{ t('back') }}</a>
+<div class="detail-grid">
+  <div class="card reveal">
+    <div class="card-title"><h3><i class="bi bi-diagram-3"></i> {{ t('nav.assignments') }} ({{ assignments|length }})</h3>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('assignments.create') }}"><i class="bi bi-plus-lg"></i>{{ t('assignments.new') }}</a></div>
+    {% for a in assignments %}
+      <a class="list-item" href="{{ url_for('assignments.detail', assignment_id=a.id) }}">
+        <span class="avatar md ph-{{ a.project.category }}"><i class="bi {{ m.CAT_ICONS.get(a.project.category) }}"></i></span>
+        <div class="grow"><b>{{ a.project.title }}</b><small>{{ a.role_title }} · {{ a.hours }} {{ t('volunteers.hours')|lower }}</small></div>
+        {{ m.status(a.status) }}
+      </a>
+    {% else %}<p class="muted">{{ t('nothing_found') }}</p>{% endfor %}
+  </div>
+  <div class="card reveal" style="text-align:center">
+    <div style="display:flex;justify-content:center;margin-bottom:14px">{% with u=volunteer, size='lg' %}{% include "partials/avatar.html" %}{% endwith %}</div>
+    <h3>{{ volunteer.full_name }}</h3>
+    <span class="badge no-dot {{ 'role-admin' if volunteer.is_admin }}">{{ t('role.' ~ volunteer.role) }}</span>
+    <ul class="info-list" style="text-align:left;margin-top:20px">
+      <li><span class="ic"><i class="bi bi-envelope"></i></span><div><small>{{ t('f.email') }}</small><b>{{ volunteer.email }}</b></div></li>
+      <li><span class="ic"><i class="bi bi-telephone"></i></span><div><small>{{ t('f.phone') }}</small><b>{{ volunteer.phone or '—' }}</b></div></li>
+      <li><span class="ic"><i class="bi bi-geo"></i></span><div><small>{{ t('f.city') }}</small><b>{{ volunteer.city or '—' }}</b></div></li>
+      <li><span class="ic"><i class="bi bi-stars"></i></span><div><small>{{ t('f.skills') }}</small><b>{{ volunteer.skills or '—' }}</b></div></li>
+      <li><span class="ic"><i class="bi bi-hourglass-split"></i></span><div><small>{{ t('volunteers.hours') }}</small><b>{{ volunteer.total_hours }}</b></div></li>
+      <li><span class="ic"><i class="bi bi-calendar-check"></i></span><div><small>{{ t('volunteers.joined') }}</small><b>{{ volunteer.created_at.strftime('%d.%m.%Y') }}</b></div></li>
+    </ul>
+    {% if volunteer.bio %}<p class="muted" style="text-align:left;margin-top:16px">{{ volunteer.bio }}</p>{% endif %}
+    <div class="form-actions" style="justify-content:center">
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('volunteers.edit', volunteer_id=volunteer.id) }}"><i class="bi bi-pencil"></i>{{ t('edit') }}</a>
+      {% if volunteer.id != current_user.id %}{{ m.delete_form(url_for('volunteers.delete', volunteer_id=volunteer.id), t('delete')) }}{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

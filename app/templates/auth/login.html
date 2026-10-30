@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ t('nav.login') }}{% endblock %}
+{% block content %}
+<div class="auth-wrap reveal">
+  {% include "auth/_side.html" %}
+  <div class="auth-form">
+    <h1>{{ t('login.title') }}</h1>
+    <p class="muted">{{ t('login.subtitle') }}</p>
+    <form method="post" novalidate class="stack" style="gap:16px;margin-top:20px">
+      {{ form.hidden_tag() }}
+      {{ m.field(form.email, placeholder='name@mail.kz', autocomplete='email') }}
+      {{ m.field(form.password, placeholder='••••••••', autocomplete='current-password') }}
+      {{ m.field(form.remember) }}
+      <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-box-arrow-in-right"></i>{{ t('nav.login') }}</button>
+    </form>
+    <p class="muted small" style="margin-top:18px">{{ t('no_account') }} <a href="{{ url_for('auth.register') }}">{{ t('nav.register') }}</a></p>
+    <div class="demo-box">
+      <b><i class="bi bi-key"></i> {{ t('demo_accounts') }}</b>
+      <div style="margin-top:8px">{{ t('role.admin') }}: <code>admin@volunteer.kz</code> / <code>Admin123</code>
+        <button class="demo-fill" type="button" data-demo="admin@volunteer.kz|Admin123">→</button></div>
+      <div>{{ t('role.volunteer') }}: <code>aigerim@volunteer.kz</code> / <code>Volunteer123</code>
+        <button class="demo-fill" type="button" data-demo="aigerim@volunteer.kz|Volunteer123">→</button></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+<aside class="auth-side">
+  <div class="rings"><span></span><span></span><span></span></div>
+  <a class="logo" href="{{ url_for('main.index') }}" style="color:#fff"><span class="logo-mark" style="background:rgba(255,255,255,.2)"><i class="bi bi-heart-fill"></i></span>{{ t('brand') }}</a>
+  <div style="position:relative">
+    <h2>{{ t('tagline') }}</h2>
+    <p style="opacity:.85">{{ t('hero.subtitle') }}</p>
+  </div>
+  <div style="display:flex;gap:18px;position:relative;opacity:.9" class="small">
+    <span><i class="bi bi-shield-check"></i> CSRF</span><span><i class="bi bi-file-earmark-pdf"></i> PDF</span><span><i class="bi bi-translate"></i> ҚАЗ / РУС</span>
+  </div>
+</aside>

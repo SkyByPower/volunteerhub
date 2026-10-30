@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ code }}{% endblock %}
+{% block content %}
+<section class="error-page">
+  <div class="ic"><i class="bi {{ icon }}"></i></div>
+  <div class="error-code gradient-text">{{ code }}</div>
+  <h1>{{ t(title) }}</h1>
+  <p class="muted" style="max-width:480px;margin:0 auto 28px">{{ t(desc) }}</p>
+  <a class="btn btn-primary btn-lg" href="{{ url_for('main.index') }}"><i class="bi bi-house"></i>{{ t('err.home') }}</a>
+</section>
+{% endblock %}

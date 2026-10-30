@@ -1,0 +1,81 @@
+{% set CAT_ICONS = {'ecology': 'bi-tree', 'education': 'bi-book', 'social': 'bi-people', 'health': 'bi-heart-pulse', 'animals': 'bi-emoji-heart-eyes', 'culture': 'bi-palette'} %}
+
+{% macro field(f, full=false, hint=none) %}
+  <div class="field {{ 'full' if full }} {{ 'has-error' if f.errors }}">
+    {% if f.type == 'BooleanField' %}
+      <label class="check">{{ f() }} {{ f.label.text }}</label>
+    {% elif f.type == 'FileField' %}
+      {{ f.label() }}
+      <div class="dropzone">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <span>{{ t('upload') }} — {{ f.label.text }}</span>
+        <div class="fname"></div>
+        {{ f(accept=kwargs.get('accept', '')) }}
+      </div>
+    {% else %}
+      {{ f.label() }}
+      {{ f(**kwargs) }}
+    {% endif %}
+    {% if hint %}<div class="hint">{{ hint }}</div>{% endif %}
+    {% for e in f.errors %}<div class="error-msg"><i class="bi bi-exclamation-circle"></i>{{ e }}</div>{% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro status(s) %}<span class="badge st-{{ s }}">{{ t('st.' ~ s) }}</span>{% endmacro %}
+
+{% macro cover(p) %}
+  {% if p.cover_image %}<img src="{{ url_for('static', filename='uploads/' ~ p.cover_image) }}" alt="{{ p.title }}" loading="lazy">
+  {% else %}<div class="ph ph-{{ p.category }}"><i class="bi {{ CAT_ICONS.get(p.category, 'bi-stars') }}"></i></div>{% endif %}
+{% endmacro %}
+
+{% macro project_card(p) %}
+  <article class="card hover project-card" data-tilt>
+    <a class="project-cover" href="{{ url_for('projects.detail', project_id=p.id) }}">
+      {{ cover(p) }}
+      <div class="badges"><span class="badge no-dot"><i class="bi {{ CAT_ICONS.get(p.category) }}"></i>{{ t('cat.' ~ p.category) }}</span>{{ status(p.status) }}</div>
+    </a>
+    <div class="project-body">
+      <h3><a href="{{ url_for('projects.detail', project_id=p.id) }}">{{ p.title }}</a></h3>
+      <div class="meta"><span><i class="bi bi-geo-alt"></i> {{ p.location }}</span><span><i class="bi bi-calendar-event"></i> {{ p.start_date.strftime('%d.%m.%Y') }}</span></div>
+      <p class="clamp">{{ p.description }}</p>
+      <div class="project-foot">
+        <div class="progress-row"><span>{{ p.taken_slots }} / {{ p.capacity }} {{ t('projects.slots') }}</span><span>{{ p.fill_percent }}%</span></div>
+        <div class="progress"><span data-w="{{ p.fill_percent }}"></span></div>
+      </div>
+    </div>
+  </article>
+{% endmacro %}
+
+{% macro pagination(pg, endpoint) %}
+  {% if pg.pages > 1 %}
+  {% set args = request.args.to_dict() %}
+  <nav class="pagination" aria-label="pagination">
+    {% if pg.has_prev %}{% set _ = args.update(page=pg.prev_num) %}<a href="{{ url_for(endpoint, **args) }}"><i class="bi bi-chevron-left"></i></a>
+    {% else %}<span class="disabled"><i class="bi bi-chevron-left"></i></span>{% endif %}
+    {% for n in pg.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+      {% if n %}
+        {% if n == pg.page %}<span class="current">{{ n }}</span>
+        {% else %}{% set _ = args.update(page=n) %}<a href="{{ url_for(endpoint, **args) }}">{{ n }}</a>{% endif %}
+      {% else %}<span class="disabled">…</span>{% endif %}
+    {% endfor %}
+    {% if pg.has_next %}{% set _ = args.update(page=pg.next_num) %}<a href="{{ url_for(endpoint, **args) }}"><i class="bi bi-chevron-right"></i></a>
+    {% else %}<span class="disabled"><i class="bi bi-chevron-right"></i></span>{% endif %}
+  </nav>
+  {% endif %}
+  <div class="result-count">{{ t('page_of') }} {{ pg.page }} / {{ pg.pages or 1 }} · {{ pg.total }} {{ t('results') }}</div>
+{% endmacro %}
+
+{% macro empty(icon='bi-search') %}
+  <div class="card empty reveal">
+    <div class="ic"><i class="bi {{ icon }}"></i></div>
+    <h3>{{ t('nothing_found') }}</h3>
+    <p class="muted">{{ t('nothing_found_hint') }}</p>
+  </div>
+{% endmacro %}
+
+{% macro delete_form(action, label=none, cls='btn btn-danger btn-sm') %}
+  <form method="post" action="{{ action }}" data-confirm style="display:inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="{{ cls }}" type="submit" title="{{ t('delete') }}"><i class="bi bi-trash3"></i>{% if label %} {{ label }}{% endif %}</button>
+  </form>
+{% endmacro %}

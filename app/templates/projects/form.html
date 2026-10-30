@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head reveal"><div><h1>{{ title }}</h1>{% if project %}<p>{{ project.title }}</p>{% endif %}</div></div>
+<div class="card reveal" style="max-width:860px">
+  <form method="post" enctype="multipart/form-data" novalidate class="form-grid">
+    {{ form.hidden_tag() }}
+    {{ m.field(form.title, full=true, maxlength=150) }}
+    {{ m.field(form.description, full=true, rows=6) }}
+    {{ m.field(form.category) }}
+    {{ m.field(form.status) }}
+    {{ m.field(form.location, maxlength=120) }}
+    {{ m.field(form.capacity, min=1, max=500) }}
+    {{ m.field(form.start_date) }}
+    {{ m.field(form.end_date) }}
+    {{ m.field(form.cover_image, full=true, accept='image/png,image/jpeg,image/webp') }}
+    {% if project and project.cover_image %}
+      <div class="full"><img src="{{ url_for('static', filename='uploads/' ~ project.cover_image) }}" alt="" style="max-height:160px;border-radius:12px"></div>
+    {% endif %}
+    <div class="full form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('projects.detail', project_id=project.id) if project else url_for('projects.list_projects') }}">{{ t('cancel') }}</a>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>{{ t('save') }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

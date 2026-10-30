@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% set admin = current_user.is_admin %}
+{% block title %}{{ t('assignments.title' if admin else 'assignments.my_title') }}{% endblock %}
+{% block content %}
+<div class="page-head reveal">
+  <div>
+    <h1>{{ t('assignments.title' if admin else 'assignments.my_title') }}</h1>
+    <p>{{ t('assignments.subtitle' if admin else 'assignments.my_subtitle') }}</p>
+  </div>
+  {% if admin %}<a class="btn btn-primary" href="{{ url_for('assignments.create') }}"><i class="bi bi-link-45deg"></i>{{ t('assignments.new') }}</a>{% endif %}
+</div>
+
+<form class="card toolbar reveal" method="get" data-autosubmit>
+  <div class="search-box"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="{{ t('search') }}..." maxlength="100"></div>
+  {% if admin %}
+  <select name="project" aria-label="{{ t('f.project') }}">
+    <option value="">{{ t('f.project') }}: {{ t('all') }}</option>
+    {% for p in projects %}<option value="{{ p.id }}" {{ 'selected' if p.id == project_id }}>{{ p.title|truncate(40) }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <select name="sort" aria-label="{{ t('sort') }}">
+    {% for s in sorts %}<option value="{{ s }}" {{ 'selected' if s == sort }}>{{ t('sort.' ~ s) }}</option>{% endfor %}
+  </select>
+  <input type="hidden" name="status" value="{{ status }}">
+  <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i>{{ t('search') }}</button>
+  {% if q or status or project_id %}<a class="btn btn-ghost" href="{{ url_for('assignments.list_assignments') }}">{{ t('reset') }}</a>{% endif %}
+</form>
+
+<div class="chips reveal">
+  {% set base = request.args.to_dict() %}{% set _ = base.pop('page', None) %}{% set _ = base.update(status='') %}
+  <a class="chip {{ 'on' if not status }}" href="{{ url_for('assignments.list_assignments', **base) }}">{{ t('all') }}</a>
+  {% for s in statuses %}{% set _ = base.update(status=s) %}
+    <a class="chip {{ 'on' if s == status }}" href="{{ url_for('assignments.list_assignments', **base) }}">{{ t('st.' ~ s) }}</a>
+  {% endfor %}
+</div>
+
+{% if pagination.items %}
+<div class="card reveal" style="padding:8px">
+  <div class="table-wrap">
+    <table>
+      <thead><tr>{% if admin %}<th>{{ t('f.volunteer') }}</th>{% endif %}<th>{{ t('f.project') }}</th><th>{{ t('f.role_title') }}</th><th>{{ t('volunteers.hours') }}</th><th>{{ t('f.status') }}</th><th>{{ t('assignments.documents') }}</th><th></th></tr></thead>
+      <tbody data-stagger>
+      {% for a in pagination.items %}
+        <tr>
+          {% if admin %}<td><div class="person">{% with u=a.volunteer, size='md' %}{% include "partials/avatar.html" %}{% endwith %}<span><b>{{ a.volunteer.full_name }}</b><small>{{ a.volunteer.email }}</small></span></div></td>{% endif %}
+          <td><a href="{{ url_for('projects.detail', project_id=a.project_id) }}"><b>{{ a.project.title|truncate(42) }}</b></a></td>
+          <td>{{ a.role_title }}</td>
+          <td>{{ a.hours }}</td>
+          <td>{{ m.status(a.status) }}</td>
+          <td>
+            {% if a.agreement_file %}<i class="bi bi-file-earmark-text" title="{{ t('f.agreement') }}" style="color:var(--info)"></i>{% endif %}
+            {% if a.certificate_file %}<i class="bi bi-award-fill" title="{{ t('f.certificate') }}" style="color:var(--accent)"></i>{% endif %}
+            {% if not a.agreement_file and not a.certificate_file %}<span class="muted">—</span>{% endif %}
+          </td>
+          <td><div class="row-actions">
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.detail', assignment_id=a.id) }}" title="{{ t('view') }}"><i class="bi bi-eye"></i></a>
+            {% if admin %}
+              <a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.edit', assignment_id=a.id) }}" title="{{ t('edit') }}"><i class="bi bi-pencil"></i></a>
+              {{ m.delete_form(url_for('assignments.delete', assignment_id=a.id)) }}
+            {% endif %}
+          </div></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ m.pagination(pagination, 'assignments.list_assignments') }}
+{% else %}
+  {{ m.empty('bi-diagram-3') }}
+{% endif %}
+{% endblock %}

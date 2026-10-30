@@ -1,0 +1,1 @@
+<span class="avatar {{ size|default('') }}">{% if u.avatar %}<img src="{{ url_for('static', filename='uploads/' ~ u.avatar) }}" alt="">{% else %}{{ u.initials }}{% endif %}</span>

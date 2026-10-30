@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ t('nav.dashboard') }}{% endblock %}
+{% block content %}
+<div class="page-head reveal">
+  <div>
+    <h1>{{ t('dash.welcome') }}, <span class="gradient-text">{{ current_user.full_name.split()[0] }}</span> 👋</h1>
+    <p>{{ t('dash.admin_sub') }}</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn btn-ghost" href="{{ url_for('assignments.create') }}"><i class="bi bi-link-45deg"></i>{{ t('assignments.new') }}</a>
+    <a class="btn btn-primary" href="{{ url_for('projects.create') }}"><i class="bi bi-plus-lg"></i>{{ t('projects.new') }}</a>
+  </div>
+</div>
+
+<section class="stats-grid" data-stagger>
+  {% for key, label, icon, g in [('projects', 'stats.projects', 'bi-kanban', 'g1'), ('active', 'st.active', 'bi-lightning-charge', 'g3'), ('volunteers', 'stats.volunteers', 'bi-people', 'g2'), ('pending', 'dash.pending', 'bi-hourglass-split', 'g4')] %}
+  <div class="card stat hover">
+    <div class="ic {{ g }}"><i class="bi {{ icon }}"></i></div>
+    <div class="num" data-count="{{ stats[key] }}">0</div>
+    <div class="lbl">{{ t(label) }}</div>
+  </div>
+  {% endfor %}
+</section>
+
+<div class="detail-grid" style="margin-top:24px">
+  <div class="stack">
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-inbox"></i> {{ t('dash.pending') }}</h3>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.list_assignments', status='pending') }}">{{ t('see_all') }}</a></div>
+      {% for a in pending %}
+        <div class="list-item">
+          {% with u=a.volunteer, size='md' %}{% include "partials/avatar.html" %}{% endwith %}
+          <div class="grow"><b>{{ a.volunteer.full_name }}</b><small>{{ a.project.title }}</small></div>
+          <div class="stepper">
+            {% for st, cls, icon in [('approved', 'btn-success', 'bi-check-lg'), ('rejected', 'btn-danger', 'bi-x-lg')] %}
+            <form method="post" action="{{ url_for('assignments.change_status', assignment_id=a.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="status" value="{{ st }}">
+              <input type="hidden" name="next" value="{{ url_for('main.dashboard') }}">
+              <button class="btn btn-sm {{ cls }}" type="submit" title="{{ t('st.' ~ st) }}"><i class="bi {{ icon }}"></i></button>
+            </form>
+            {% endfor %}
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.detail', assignment_id=a.id) }}"><i class="bi bi-eye"></i></a>
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">{{ t('nothing_found') }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-activity"></i> {{ t('dash.recent') }}</h3></div>
+      {% for a in recent %}
+        <a class="list-item" href="{{ url_for('assignments.detail', assignment_id=a.id) }}">
+          {% with u=a.volunteer, size='md' %}{% include "partials/avatar.html" %}{% endwith %}
+          <div class="grow"><b>{{ a.volunteer.full_name }} → {{ a.project.title }}</b><small>{{ a.updated_at.strftime('%d.%m.%Y %H:%M') }}</small></div>
+          {{ m.status(a.status) }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-pie-chart"></i> {{ t('dash.by_status') }}</h3></div>
+      <div class="bar-list">
+        {% for s, c in by_status %}
+        <div class="bar-row st-{{ s }}">
+          <div class="top"><span>{{ t('st.' ~ s) }}</span><span>{{ c }}</span></div>
+          <div class="progress"><span data-w="{{ (c * 100 / total)|round|int }}"></span></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-lightning"></i> {{ t('dash.quick') }}</h3></div>
+      <div class="stack" style="gap:10px">
+        <a class="btn btn-ghost btn-block" href="{{ url_for('volunteers.create') }}"><i class="bi bi-person-plus"></i>{{ t('volunteers.new') }}</a>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('volunteers.list_volunteers') }}"><i class="bi bi-people"></i>{{ t('nav.volunteers') }}</a>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('assignments.list_assignments') }}"><i class="bi bi-diagram-3"></i>{{ t('nav.assignments') }}</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

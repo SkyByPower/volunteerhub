@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ t('nav.volunteers') }}{% endblock %}
+{% block content %}
+<div class="page-head reveal">
+  <div><h1>{{ t('volunteers.title') }}</h1><p>{{ t('volunteers.subtitle') }}</p></div>
+  <a class="btn btn-primary" href="{{ url_for('volunteers.create') }}"><i class="bi bi-person-plus"></i>{{ t('volunteers.new') }}</a>
+</div>
+
+<form class="card toolbar reveal" method="get" data-autosubmit>
+  <div class="search-box"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" placeholder="{{ t('search_people') }}" maxlength="100"></div>
+  <select name="role" aria-label="{{ t('f.role') }}">
+    <option value="">{{ t('f.role') }}: {{ t('all') }}</option>
+    {% for r in roles %}<option value="{{ r }}" {{ 'selected' if r == role }}>{{ t('role.' ~ r) }}</option>{% endfor %}
+  </select>
+  <select name="city" aria-label="{{ t('f.city') }}">
+    <option value="">{{ t('f.city') }}: {{ t('all') }}</option>
+    {% for c in cities %}<option value="{{ c }}" {{ 'selected' if c == city }}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="sort" aria-label="{{ t('sort') }}">
+    {% for s in sorts %}<option value="{{ s }}" {{ 'selected' if s == sort }}>{{ t('sort.' ~ s) }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i>{{ t('search') }}</button>
+  {% if q or role or city %}<a class="btn btn-ghost" href="{{ url_for('volunteers.list_volunteers') }}">{{ t('reset') }}</a>{% endif %}
+</form>
+
+{% if pagination.items %}
+<div class="card reveal" style="padding:8px">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>{{ t('f.volunteer') }}</th><th>{{ t('f.phone') }}</th><th>{{ t('f.city') }}</th><th>{{ t('f.role') }}</th><th>{{ t('volunteers.projects') }}</th><th>{{ t('volunteers.hours') }}</th><th></th></tr></thead>
+      <tbody data-stagger>
+      {% for v in pagination.items %}
+        <tr>
+          <td><a class="person" href="{{ url_for('volunteers.detail', volunteer_id=v.id) }}">{% with u=v, size='md' %}{% include "partials/avatar.html" %}{% endwith %}<span><b>{{ v.full_name }}</b><small>{{ v.email }}</small></span></a></td>
+          <td>{{ v.phone or '—' }}</td>
+          <td>{{ v.city or '—' }}</td>
+          <td><span class="badge no-dot {{ 'role-admin' if v.is_admin }}">{{ t('role.' ~ v.role) }}</span></td>
+          <td>{{ v.assignments.count() }}</td>
+          <td><b>{{ v.total_hours }}</b></td>
+          <td><div class="row-actions">
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('volunteers.detail', volunteer_id=v.id) }}" title="{{ t('view') }}"><i class="bi bi-eye"></i></a>
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('volunteers.edit', volunteer_id=v.id) }}" title="{{ t('edit') }}"><i class="bi bi-pencil"></i></a>
+            {% if v.id != current_user.id %}{{ m.delete_form(url_for('volunteers.delete', volunteer_id=v.id)) }}{% endif %}
+          </div></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ m.pagination(pagination, 'volunteers.list_volunteers') }}
+{% else %}
+  {{ m.empty('bi-person-x') }}
+{% endif %}
+{% endblock %}

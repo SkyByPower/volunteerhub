@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "VolunteerHub API",
+    "description": "Volunteer Management REST API. Run 'Get token (admin)' first — it stores the token in the {{token}} variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base", "value": "http://127.0.0.1:5000/api" },
+    { "key": "token", "value": "" },
+    { "key": "project_id", "value": "1" },
+    { "key": "assignment_id", "value": "1" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{token}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Get token (admin)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200', () => pm.response.to.have.status(200));",
+        "pm.collectionVariables.set('token', pm.response.json().token);"
+      ] } }],
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@volunteer.kz\",\n  \"password\": \"Admin123\"\n}" },
+        "url": "{{base}}/auth/token"
+      }
+    },
+    {
+      "name": "Stats",
+      "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base}}/stats" }
+    },
+    {
+      "name": "List projects (search + filter + pagination)",
+      "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base}}/projects?q=Алматы&status=planned&page=1&per_page=5" }
+    },
+    {
+      "name": "Get project",
+      "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base}}/projects/{{project_id}}" }
+    },
+    {
+      "name": "Create project",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('201', () => pm.response.to.have.status(201));",
+        "pm.collectionVariables.set('project_id', pm.response.json().id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Саябақты көгалдандыру\",\n  \"description\": \"Қалалық саябаққа гүл және көшет отырғызу\",\n  \"category\": \"ecology\",\n  \"location\": \"Алматы, Орталық саябақ\",\n  \"start_date\": \"2026-12-01\",\n  \"end_date\": \"2026-12-05\",\n  \"capacity\": 12,\n  \"status\": \"planned\"\n}" },
+        "url": "{{base}}/projects"
+      }
+    },
+    {
+      "name": "Update project (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"capacity\": 25,\n  \"status\": \"active\"\n}" },
+        "url": "{{base}}/projects/{{project_id}}"
+      }
+    },
+    {
+      "name": "Create project — validation error (422)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"x\",\n  \"capacity\": 9999\n}" },
+        "url": "{{base}}/projects"
+      }
+    },
+    {
+      "name": "List assignments",
+      "request": { "method": "GET", "url": "{{base}}/assignments?status=pending" }
+    },
+    {
+      "name": "Assign volunteer to project",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "if (pm.response.code === 201) pm.collectionVariables.set('assignment_id', pm.response.json().id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"project_id\": {{project_id}},\n  \"volunteer_id\": 2,\n  \"role_title\": \"Координатор\",\n  \"status\": \"approved\"\n}" },
+        "url": "{{base}}/assignments"
+      }
+    },
+    {
+      "name": "Change assignment status (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\",\n  \"hours\": 16\n}" },
+        "url": "{{base}}/assignments/{{assignment_id}}"
+      }
+    },
+    {
+      "name": "List volunteers (admin)",
+      "request": { "method": "GET", "url": "{{base}}/volunteers?q=Алматы" }
+    },
+    {
+      "name": "Delete assignment",
+      "request": { "method": "DELETE", "url": "{{base}}/assignments/{{assignment_id}}" }
+    },
+    {
+      "name": "Delete project",
+      "request": { "method": "DELETE", "url": "{{base}}/projects/{{project_id}}" }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m with context %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<a class="btn btn-ghost btn-sm reveal" href="{{ url_for('projects.list_projects') }}" style="margin-bottom:18px"><i class="bi bi-arrow-left"></i>{{ t('back') }}</a>
+
+<div class="detail-hero reveal">
+  {{ m.cover(project) }}
+  <div class="overlay">
+    <div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge no-dot"><i class="bi {{ m.CAT_ICONS.get(project.category) }}"></i>{{ t('cat.' ~ project.category) }}</span>{{ m.status(project.status) }}</div>
+      <h1>{{ project.title }}</h1>
+    </div>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="stack">
+    <div class="card reveal">
+      <div class="card-title"><h3>{{ t('f.description') }}</h3>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+          <div class="row-actions">
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('projects.edit', project_id=project.id) }}"><i class="bi bi-pencil"></i>{{ t('edit') }}</a>
+            {{ m.delete_form(url_for('projects.delete', project_id=project.id), t('delete')) }}
+          </div>
+        {% endif %}
+      </div>
+      <p class="prose">{{ project.description }}</p>
+    </div>
+
+    <div class="card reveal">
+      <div class="card-title"><h3><i class="bi bi-people"></i> {{ t('projects.team') }} ({{ team|length }})</h3>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+          <a class="btn btn-primary btn-sm" href="{{ url_for('assignments.create', project=project.id) }}"><i class="bi bi-person-plus"></i>{{ t('projects.assign') }}</a>
+        {% endif %}
+      </div>
+      {% for a in team %}
+        {% if current_user.is_authenticated and (current_user.is_admin or a.volunteer_id == current_user.id) %}
+          {% set href = url_for('assignments.detail', assignment_id=a.id) %}
+        {% else %}{% set href = none %}{% endif %}
+        {% set tag = 'a' if href else 'div' %}
+        <{{ tag }} class="list-item" {% if href %}href="{{ href }}"{% endif %}>
+          {% with u=a.volunteer, size='md' %}{% include "partials/avatar.html" %}{% endwith %}
+          <div class="grow"><b>{{ a.volunteer.full_name }}</b><small>{{ a.role_title }}{% if a.volunteer.city %} · {{ a.volunteer.city }}{% endif %}</small></div>
+          {{ m.status(a.status) }}
+        </{{ tag }}>
+      {% else %}
+        <p class="muted">{{ t('projects.no_team') }}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card reveal">
+      <ul class="info-list">
+        <li><span class="ic"><i class="bi bi-geo-alt"></i></span><div><small>{{ t('f.location') }}</small><b>{{ project.location }}</b></div></li>
+        <li><span class="ic"><i class="bi bi-calendar-range"></i></span><div><small>{{ t('projects.dates') }}</small>
+          <b>{{ project.start_date.strftime('%d.%m.%Y') }}{% if project.end_date %} — {{ project.end_date.strftime('%d.%m.%Y') }}{% endif %}</b></div></li>
+        <li><span class="ic"><i class="bi bi-person-badge"></i></span><div><small>{{ t('projects.organizer') }}</small><b>{{ project.creator.full_name if project.creator else '—' }}</b></div></li>
+      </ul>
+      <div style="margin-top:20px">
+        <div class="progress-row"><span>{{ project.taken_slots }} / {{ project.capacity }} {{ t('projects.slots') }}</span><span>{{ project.fill_percent }}%</span></div>
+        <div class="progress" style="height:10px"><span data-w="{{ project.fill_percent }}"></span></div>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      {% if not current_user.is_authenticated %}
+        <a class="btn btn-primary btn-block btn-lg" href="{{ url_for('auth.login', next=request.path) }}"><i class="bi bi-box-arrow-in-right"></i>{{ t('projects.apply') }}</a>
+      {% elif my_assignment %}
+        <div style="text-align:center">
+          <i class="bi bi-check2-circle" style="font-size:2.4rem;color:var(--accent)"></i>
+          <h3>{{ t('projects.applied') }}</h3>
+          {{ m.status(my_assignment.status) }}
+          <div style="margin-top:14px"><a class="btn btn-ghost btn-sm" href="{{ url_for('assignments.detail', assignment_id=my_assignment.id) }}">{{ t('view') }} <i class="bi bi-arrow-right"></i></a></div>
+        </div>
+      {% elif project.is_full or project.status == 'completed' %}
+        <div style="text-align:center"><i class="bi bi-lock" style="font-size:2rem;color:var(--muted)"></i><h3>{{ t('projects.full') }}</h3></div>
+      {% else %}
+        <h3><i class="bi bi-send"></i> {{ t('projects.apply') }}</h3>
+        <form method="post" action="{{ url_for('projects.apply', project_id=project.id) }}" class="stack" style="gap:14px">
+          {{ apply_form.hidden_tag() }}
+          {{ m.field(apply_form.note, rows=4, maxlength=500) }}
+          <button class="btn btn-primary btn-block" type="submit"><i class="bi bi-heart"></i>{{ t('projects.apply') }}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

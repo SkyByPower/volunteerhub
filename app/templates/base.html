@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ t('brand') }}{% endblock %} · {{ t('brand') }}</title>
+  <script>
+    try { var th = localStorage.getItem("vh-theme"); } catch (e) {}
+    document.documentElement.classList.add("js");
+    document.documentElement.dataset.theme = th || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💜</text></svg>">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+  {% set ep = request.endpoint or '' %}
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="logo" href="{{ url_for('main.index') }}"><span class="logo-mark"><i class="bi bi-heart-fill"></i></span>{{ t('brand') }}</a>
+      <nav class="nav-links">
+        <a href="{{ url_for('main.index') }}" class="{{ 'active' if ep == 'main.index' }}">{{ t('nav.home') }}</a>
+        <a href="{{ url_for('projects.list_projects') }}" class="{{ 'active' if ep.startswith('projects.') }}">{{ t('nav.projects') }}</a>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if ep == 'main.dashboard' }}">{{ t('nav.dashboard') }}</a>
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('volunteers.list_volunteers') }}" class="{{ 'active' if ep.startswith('volunteers.') }}">{{ t('nav.volunteers') }}</a>
+            <a href="{{ url_for('assignments.list_assignments') }}" class="{{ 'active' if ep.startswith('assignments.') }}">{{ t('nav.assignments') }}</a>
+          {% else %}
+            <a href="{{ url_for('assignments.list_assignments') }}" class="{{ 'active' if ep.startswith('assignments.') }}">{{ t('nav.my_assignments') }}</a>
+          {% endif %}
+        {% endif %}
+      </nav>
+      <div class="nav-actions">
+        <div class="lang-switch">
+          <a href="{{ url_for('set_language', code='kk') }}" class="{{ 'on' if lang == 'kk' }}">ҚАЗ</a>
+          <a href="{{ url_for('set_language', code='ru') }}" class="{{ 'on' if lang == 'ru' }}">РУС</a>
+        </div>
+        <button class="icon-btn" id="themeToggle" type="button" title="{{ t('theme.toggle') }}" aria-label="{{ t('theme.toggle') }}"></button>
+        {% if current_user.is_authenticated %}
+          <div class="user-menu">
+            <button class="user-chip" type="button">
+              {% with u=current_user %}{% include "partials/avatar.html" %}{% endwith %}
+              <span class="name">{{ current_user.full_name.split()[0] }}</span><i class="bi bi-chevron-down small"></i>
+            </button>
+            <div class="dropdown">
+              <div class="small muted" style="padding:6px 12px">{{ current_user.email }}<br>
+                <span class="badge no-dot {{ 'role-admin' if current_user.is_admin }}" style="margin-top:6px">{{ t('role.' ~ current_user.role) }}</span></div>
+              <hr>
+              <a href="{{ url_for('main.dashboard') }}"><i class="bi bi-grid-1x2"></i>{{ t('nav.dashboard') }}</a>
+              <a href="{{ url_for('auth.profile') }}"><i class="bi bi-person-circle"></i>{{ t('nav.profile') }}</a>
+              <hr>
+              <form method="post" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"><i class="bi bi-box-arrow-right"></i>{{ t('nav.logout') }}</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a class="btn btn-ghost btn-sm hide-sm" href="{{ url_for('auth.login') }}">{{ t('nav.login') }}</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">{{ t('nav.register') }}</a>
+        {% endif %}
+        <button class="icon-btn burger" id="burger" type="button" aria-label="Menu"><i class="bi bi-list"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="toasts">
+    {% set icons = {'success': 'bi-check-circle-fill', 'danger': 'bi-x-octagon-fill', 'warning': 'bi-exclamation-triangle-fill', 'info': 'bi-info-circle-fill', 'message': 'bi-info-circle-fill'} %}
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      {% set cat = category if category in icons else 'info' %}
+      <div class="toast toast-{{ cat }}" role="status">
+        <i class="bi {{ icons[cat] }} ic"></i><div class="msg">{{ message }}</div>
+        <button class="close" type="button" aria-label="close"><i class="bi bi-x-lg"></i></button>
+      </div>
+    {% endfor %}
+  </div>
+
+  <main>
+    <div class="container page-enter">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>© 2026 {{ t('brand') }} — {{ t('footer.made') }} <i class="bi bi-heart-fill" style="color:var(--primary-2)"></i></span>
+      <span>Flask · SQLAlchemy · Jinja2 · <a href="{{ url_for('api.list_projects') }}">{{ t('nav.api') }}</a></span>
+    </div>
+  </footer>
+
+  <div class="modal" id="confirmModal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="ic"><i class="bi bi-trash3"></i></div>
+      <h3>{{ t('confirm_title') }}</h3>
+      <p class="muted">{{ t('confirm_delete') }}</p>
+      <div class="acts">
+        <button class="btn btn-ghost" type="button" data-cancel>{{ t('cancel') }}</button>
+        <button class="btn btn-danger" type="button" data-ok>{{ t('yes_delete') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
